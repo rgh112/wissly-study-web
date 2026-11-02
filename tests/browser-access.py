@@ -5,7 +5,7 @@ from websockets.asyncio.client import connect
 root=Path(__file__).resolve().parents[1]
 runtime=root/'.runtime'
 profile=runtime/('qa-access-'+uuid.uuid4().hex[:8]);profile.mkdir()
-base=os.environ.get('STUDY_BROWSER_URL','http://127.0.0.1:'+(runtime/'server-port').read_text()+'/')
+base=os.environ.get('STUDY_BROWSER_URL') or 'http://127.0.0.1:'+(runtime/'server-port').read_text()+'/'
 admin_key=Path(os.environ.get('STUDY_ADMIN_KEY_FILE',str(root/'.data/admin-key.txt'))).read_text().strip()
 process=subprocess.Popen([r'C:\Program Files\Google\Chrome\Application\chrome.exe','--headless=new','--disable-gpu','--no-first-run','--remote-debugging-port=0','--user-data-dir='+str(profile),'about:blank'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,creationflags=subprocess.CREATE_NO_WINDOW)
 
@@ -41,11 +41,16 @@ async def run():
    result=await call('Page.captureScreenshot',{'format':'png','captureBeyondViewport':True});(runtime/name).write_bytes(base64.b64decode(result['data']))
   async def capture_download():await js('window.originalCreateObjectURL=URL.createObjectURL;URL.createObjectURL=(blob)=>{window.downloadedBlob=blob;return window.originalCreateObjectURL(blob);}')
   await call('Runtime.enable');await call('Page.enable');await call('Network.enable')
+  if os.environ.get('STUDY_QA_MANIFEST'):
+   # Record only IDs created by this test, so synthetic production data can be removed precisely.
+   manifest=os.environ['STUDY_QA_MANIFEST']
+   await call('Page.addScriptToEvaluateOnNewDocument',{'source':'''window.__qaParticipants=[];const qaFetch=window.fetch;window.fetch=async function(...args){const r=await qaFetch(...args);if(String(args[0]).endsWith('/api/access/start')&&r.ok){const d=await r.clone().json();const ids=JSON.parse(sessionStorage.getItem('qa-created-participants')||'[]');ids.push(d.participant.id);sessionStorage.setItem('qa-created-participants',JSON.stringify(ids));}return r;};'''})
   await call('Emulation.setDeviceMetricsOverride',{'width':1280,'height':900,'deviceScaleFactor':1,'mobile':False})
   await call('Page.navigate',{'url':base});await wait('!!document.querySelector("#entry-start")')
   assert not await js('!!document.querySelector("a[href*=signin-with]")')
   await screenshot('independent-entry.png');await click('#entry-start');await wait('typeof loaded!=="undefined"&&loaded');assert await js('settle()')
   code=await js('window.studyGetToken()');record_id=await js('recordId')
+  if os.environ.get('STUDY_QA_MANIFEST'):Path(manifest).write_text(await js('sessionStorage.getItem("qa-created-participants")'),encoding='utf-8')
   await click('[name=pre_ai_frequency][value=often]');assert await js('settle()')
   await js('answer("v5_comment","<img src=x onerror=alert(1)>")');assert await js('settle()')
   await js('document.querySelector(".access-note").open=true');await capture_download();await click('#save-access-code')
@@ -60,6 +65,7 @@ async def run():
   assert await js('!window.studyGetToken()')
   await click('#entry-start');await wait('typeof loaded!=="undefined"&&loaded');assert await js('settle()')
   assert await js('recordId')!=record_id
+  if os.environ.get('STUDY_QA_MANIFEST'):Path(manifest).write_text(await js('sessionStorage.getItem("qa-created-participants")'),encoding='utf-8')
   assert await js('(async()=>{const r=await window.studyFetch("/sessions/'+record_id+'");return r.status;})()')==404
   await js('document.querySelector(".access-note").open=true');await click('#leave-study');await click('#leave-confirm')
   await fill('#return-code',code);await click('#resume-form button');await wait('typeof loaded!=="undefined"&&loaded');assert await js('settle()')

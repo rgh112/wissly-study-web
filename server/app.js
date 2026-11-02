@@ -118,6 +118,7 @@ async function route(request,env,url){
 }
 export default {async fetch(request,env){
   const url=new URL(request.url),origin=request.headers.get('Origin');
+  if(url.protocol==='http:'&&!env.CLIENT_IP){url.protocol='https:';return Response.redirect(url.href,308);}
   const allowed=new Set([url.origin,...String(env.ALLOWED_ORIGINS||'').split(',').map(s=>s.trim()).filter(Boolean)]);
   if(!url.pathname.startsWith('/api/'))return env.ASSETS.fetch(request);
   let response;

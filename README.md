@@ -9,6 +9,7 @@ Node.js 24.13 이상(24.x)에서 `npm start`를 실행하고 `http://localhost:4
 - 참여자: `/` 또는 `/en/index.html?lang=en`
 - 진행자: `/admin.html`
 - 로컬 진행자 키: 첫 실행 시 생성되는 `.data/admin-key.txt`
+- 공개 사이트 진행자 키: `.data/production-admin-key.txt` (Cloudflare의 `ADMIN_KEY`와 동일, Git 추적 제외)
 - 로컬 응답: `.data/study.sqlite` (Git 추적 제외)
 - 검사: `npm run check`, `npm test`
 - 로컬 SQLite 백업: `npm run backup`
@@ -32,7 +33,7 @@ GitHub Pages는 공개 화면과 작업 자료를 제공하고, Cloudflare Worke
 3. 최초 DB에만 `npx wrangler@4 d1 execute wissly-study --remote --file server/schema.sql`을 실행합니다. 그다음 `npx wrangler@4 d1 execute wissly-study --remote --file server/access-schema.sql`을 실행합니다. 첫 명령을 기존 데이터가 있는 DB에 반복하지 않습니다.
 4. `npx wrangler@4 secret put ADMIN_KEY`를 실행해 무작위 32자 이상의 진행자 키를 입력합니다. 참가자에게 전달하지 않습니다. 토큰은 저장소·명령 인수·브라우저 소스에 넣지 않습니다.
 5. `npx wrangler@4 deploy`로 API를 배포합니다. `ALLOWED_ORIGINS`는 Pages origin (`https://rgh112.github.io`)과 현재 GitHub 계정의 기존 도메인 (`https://kunheeryu.com`)을 허용합니다. 별도 주소를 쓰면 이 값을 변경합니다.
-6. `node scripts/configure-api.mjs https://실제-API주소.workers.dev`로 프런트엔드를 연결합니다. API URL은 비밀키가 아니며 공개해도 됩니다.
+6. `node scripts/configure-api.mjs https://실제-API주소.workers.dev`로 프런트엔드를 연결합니다. 현재 운영 API는 `https://wissly-study-api.wissly-study-web.workers.dev`입니다. API URL은 비밀키가 아니며 공개해도 됩니다.
 7. 변경을 커밋한 뒤 `powershell -File scripts/publish-pages.ps1`을 실행합니다. GitHub 저장소 Settings → Pages에서 `gh-pages`, `/ (root)`를 선택합니다.
 8. 공개 사이트에서 한국어·영어 참여, 응답 저장·재접속·수정, 관리자 조회·내려받기를 확인한 뒤 실제 연구에 사용합니다. API 미연결 상태에서는 Pages의 시작 버튼을 비활성화합니다.
 
@@ -55,4 +56,6 @@ GitHub Pages는 공개 화면과 작업 자료를 제공하고, Cloudflare Worke
 - 영문: https://kunheeryu.com/wissly-study-web/en/index.html?lang=en
 - 진행자: https://kunheeryu.com/wissly-study-web/admin.html
 
-GitHub 계정의 기존 사용자 사이트 도메인을 자동으로 상속합니다. 기존 개인 홈페이지와 DNS 설정은 변경하지 않았습니다. 현재 정적 화면만 공개되었으며, Cloudflare 계정 연결과 API 배포가 끝나기 전에는 실제 설문을 시작할 수 없습니다.
+GitHub 계정의 기존 사용자 사이트 도메인을 자동으로 상속합니다. 기존 개인 홈페이지와 DNS 설정은 변경하지 않았습니다. Cloudflare D1 운영 저장소 연결을 완료했습니다. 참여자는 로그인 없이 시작하고 재접속 코드로 응답을 다시 엽니다.
+
+운영 DB는 `wissly-study`입니다. 로컬 점검은 `.data/study.sqlite`를 사용하며, 공개 API 주소가 설정되어 있어도 `npm start`는 로컬 DB만 사용하도록 분리했습니다. Cloudflare에서 수행하는 자동화 검증은 별도 QA 저장소를 사용합니다. 실제 연구용 DB에 테스트 참여자를 생성하지 않습니다.

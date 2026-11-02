@@ -5,5 +5,5 @@
   "workers_dev": true,
   "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": ["/api/*"] },
   "vars": { "ALLOWED_ORIGINS": "https://rgh112.github.io,https://kunheeryu.com", "MAX_PARTICIPANTS": "50" },
-  "d1_databases": [{ "binding": "DB", "database_name": "wissly-study", "database_id": "REPLACE_WITH_CREATED_D1_ID" }]
+  "d1_databases": [{ "binding": "DB", "database_name": "wissly-study", "database_id": "d6caf3ff-e868-4b0e-a635-303ad7f99d62" }]
 }

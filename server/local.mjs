@@ -21,6 +21,8 @@ const DB=localDB(path.join(dataDir,'study.sqlite'));
 const env={DB,ADMIN_KEY:adminKey,ALLOWED_ORIGINS:process.env.ALLOWED_ORIGINS||'',MAX_PARTICIPANTS:process.env.MAX_PARTICIPANTS||50,ASSETS:{async fetch(request){
   if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405});
   let pathname;try{pathname=decodeURIComponent(new URL(request.url).pathname);}catch{return new Response('Not found',{status:404});}
+  // A local preview always uses its own SQLite database, even after Pages is deployed.
+  if(pathname==='/config.js')return new Response(request.method==='HEAD'?null:"window.STUDY_CONFIG={apiBase:''};\n",{headers:{'Content-Type':'text/javascript; charset=utf-8','Cache-Control':'no-store'}});
   if(pathname.endsWith('/'))pathname+='index.html';
   const filename=path.resolve(publicDir,'.'+pathname);
   if(!filename.startsWith(publicDir+path.sep)||pathname.includes('\\')||pathname.includes('\0'))return new Response('Not found',{status:404});

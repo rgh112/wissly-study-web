@@ -1,5 +1,5 @@
 from pathlib import Path
-import asyncio,base64,json,subprocess,urllib.request,uuid
+import asyncio,base64,json,subprocess,urllib.request,uuid,os
 from websockets.asyncio.client import connect
 root=Path(__file__).resolve().parents[1]
 runtime=root/'.runtime'
@@ -16,7 +16,7 @@ async def run():
    nonlocal n
    n+=1;await ws.send(json.dumps({'id':n,'method':method,'params':params or {}}))
    while True:
-    r=json.loads(await asyncio.wait_for(ws.recv(),15))
+    r=json.loads(await asyncio.wait_for(ws.recv(),45))
     if r.get('method')=='Runtime.exceptionThrown':errors.append(r)
     if r.get('id')==n:
      assert 'error' not in r,r
@@ -38,10 +38,13 @@ async def run():
     await asyncio.sleep(.1)
    raise AssertionError('Page did not load')
   await call('Runtime.enable');await call('Page.enable');await call('Network.enable')
+  if os.environ.get('STUDY_QA_MANIFEST'):
+   await call('Page.addScriptToEvaluateOnNewDocument',{'source':'''const qaFetch=window.fetch;window.fetch=async function(...args){const r=await qaFetch(...args);if(String(args[0]).endsWith('/api/access/start')&&r.ok){const d=await r.clone().json();const ids=JSON.parse(sessionStorage.getItem('qa-created-participants')||'[]');ids.push(d.participant.id);sessionStorage.setItem('qa-created-participants',JSON.stringify(ids));}return r;};'''})
   await call('Emulation.setDeviceMetricsOverride',{'width':1440,'height':1000,'deviceScaleFactor':1,'mobile':False})
-  await call('Page.navigate',{'url':'http://127.0.0.1:'+ (runtime/'server-port').read_text()+'/'})
+  await call('Page.navigate',{'url':os.environ.get('STUDY_BROWSER_URL') or 'http://127.0.0.1:'+ (runtime/'server-port').read_text()+'/'})
   await click('#entry-start')
   await ready()
+  if os.environ.get('STUDY_QA_MANIFEST'):Path(os.environ['STUDY_QA_MANIFEST']).write_text(await js('sessionStorage.getItem("qa-created-participants")'),encoding='utf-8')
   async def screenshot(name):
    shot=await call('Page.captureScreenshot',{'format':'png','captureBeyondViewport':True});(runtime/name).write_bytes(base64.b64decode(shot['data']))
   async def input_value(key,value):
@@ -51,8 +54,9 @@ async def run():
    await click('#done');await choose('v4_outcome_'+key,outcome);await choose('v4_seq_'+key,seq)
    if outcome!='complete':await input_value('v4_reason_'+key,'원하는 파일을 만들지 못함')
   async def advance():
+   await settled()
    await click('#advance')
-   for _ in range(100):
+   for _ in range(600):
     if await js('!document.querySelector("dialog").open'):break
     await asyncio.sleep(.05)
    await check('!document.querySelector("dialog").open')
@@ -96,7 +100,10 @@ async def run():
   await click('.response-review>summary');await click('#edit-post');await choose('v5_start',2);await settled()
   await click('#survey-next');await click('#survey-next');await check('current()==="finish"')
   await js('window.originalCreateObjectURL=URL.createObjectURL;URL.createObjectURL=(blob)=>{window.downloadedBlob=blob;return window.originalCreateObjectURL(blob);}')
-  await click('#export');await asyncio.sleep(.3)
+  await click('#export')
+  for _ in range(300):
+   if await js('!!window.downloadedBlob'):break
+   await asyncio.sleep(.1)
   exported=await js('(async()=>JSON.parse(await window.downloadedBlob.text()))()')
   assert exported['record']['data']['answers']['v5_start']==2,exported
   assert exported['interview']['surveyAtStart']['v5_start']==4,exported
@@ -105,7 +112,13 @@ async def run():
   await call('Emulation.setDeviceMetricsOverride',{'width':390,'height':844,'deviceScaleFactor':1,'mobile':True})
   await check('document.documentElement.scrollWidth<=innerWidth');await screenshot('v5-mobile.png')
   # All-new AI users skip the two followup pre-survey questions; missing PPT skips revision.
-  await click('#new-record');await click('#create-record');await asyncio.sleep(.3);await ready()
+  old_record=await js('recordId')
+  await click('#new-record');await click('#create-record')
+  for _ in range(300):
+   if await js('loaded && recordId!=='+json.dumps(old_record)):break
+   await asyncio.sleep(.1)
+  await ready()
+  if os.environ.get('STUDY_QA_MANIFEST'):Path(os.environ['STUDY_QA_MANIFEST']).write_text(await js('sessionStorage.getItem("qa-created-participants")'),encoding='utf-8')
   await input_value('participant','QA-V5-NEW');await choose('pre_ai_frequency','never')
   await check('[...document.querySelectorAll(".ai-experience")].every(el=>el.hidden)')
   await js('document.querySelectorAll("[data-ready]").forEach(c=>c.click())');await click('#start');await check('current()==="T3"')
