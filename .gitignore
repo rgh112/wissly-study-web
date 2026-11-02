@@ -1,0 +1,12 @@
+node_modules/
+.data/
+.runtime/
+.wrangler/
+.env*
+!.env.example
+*.sqlite*
+*.db
+*.log
+*.zip.tmp
+wrangler.local.json
+
