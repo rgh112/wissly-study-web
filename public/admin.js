@@ -35,4 +35,5 @@ async function detail(id){
     document.querySelector('#download-one').onclick=()=>download(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),'wissly-'+d.participantCode+'-'+id.slice(0,8)+'.json');target.scrollIntoView({behavior:'smooth'});
   }catch(e){document.querySelector('#admin-error').textContent=e.message;}
 }
-if(adminToken)void dashboard();else login();
+if(!window.studyBackendReady)root.innerHTML='<h1>진행자 화면</h1><p>응답 저장소를 연결하는 중입니다. 연결 후 참여 기록을 확인할 수 있습니다.</p>';
+else if(adminToken)void dashboard();else login();

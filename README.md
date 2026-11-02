@@ -31,7 +31,7 @@ GitHub Pages는 공개 화면과 작업 자료를 제공하고, Cloudflare Worke
 2. `npx wrangler@4 d1 create wissly-study`로 새 데이터베이스를 만들고 반환된 ID를 `wrangler.jsonc`의 `database_id`에 넣습니다. 기존 데이터베이스가 있으면 먼저 확인하고 재사용합니다.
 3. 최초 DB에만 `npx wrangler@4 d1 execute wissly-study --remote --file server/schema.sql`을 실행합니다. 그다음 `npx wrangler@4 d1 execute wissly-study --remote --file server/access-schema.sql`을 실행합니다. 첫 명령을 기존 데이터가 있는 DB에 반복하지 않습니다.
 4. `npx wrangler@4 secret put ADMIN_KEY`를 실행해 무작위 32자 이상의 진행자 키를 입력합니다. 참가자에게 전달하지 않습니다. 토큰은 저장소·명령 인수·브라우저 소스에 넣지 않습니다.
-5. `npx wrangler@4 deploy`로 API를 배포합니다. `ALLOWED_ORIGINS`는 실제 Pages origin (`https://rgh112.github.io`)만 허용합니다. 별도 주소를 쓰면 이 값을 변경합니다.
+5. `npx wrangler@4 deploy`로 API를 배포합니다. `ALLOWED_ORIGINS`는 Pages origin (`https://rgh112.github.io`)과 현재 GitHub 계정의 기존 도메인 (`https://kunheeryu.com`)을 허용합니다. 별도 주소를 쓰면 이 값을 변경합니다.
 6. `node scripts/configure-api.mjs https://실제-API주소.workers.dev`로 프런트엔드를 연결합니다. API URL은 비밀키가 아니며 공개해도 됩니다.
 7. 변경을 커밋한 뒤 `powershell -File scripts/publish-pages.ps1`을 실행합니다. GitHub 저장소 Settings → Pages에서 `gh-pages`, `/ (root)`를 선택합니다.
 8. 공개 사이트에서 한국어·영어 참여, 응답 저장·재접속·수정, 관리자 조회·내려받기를 확인한 뒤 실제 연구에 사용합니다. API 미연결 상태에서는 Pages의 시작 버튼을 비활성화합니다.
@@ -47,3 +47,12 @@ GitHub Pages는 공개 화면과 작업 자료를 제공하고, Cloudflare Worke
 `npm start`의 로컬 DB와 Cloudflare D1은 서로 다른 저장소입니다. 같은 참여 코드라도 다른 서버에서 자동 통합되지 않습니다. Cloudflare 전환 후에는 공개 URL로 실제 참여를 진행합니다.
 
 원래 질문·과제·자료는 `study-guide-site`의 v5 구성에서 가져왔습니다. 기존 Sites 프로젝트는 변경하지 않았습니다. 영어 선택지의 내부 코드는 한국어와 동일하게 유지합니다.
+
+## 현재 공개 위치
+
+- 저장소: https://github.com/rgh112/wissly-study-web
+- 사이트: https://kunheeryu.com/wissly-study-web/
+- 영문: https://kunheeryu.com/wissly-study-web/en/index.html?lang=en
+- 진행자: https://kunheeryu.com/wissly-study-web/admin.html
+
+GitHub 계정의 기존 사용자 사이트 도메인을 자동으로 상속합니다. 기존 개인 홈페이지와 DNS 설정은 변경하지 않았습니다. 현재 정적 화면만 공개되었으며, Cloudflare 계정 연결과 API 배포가 끝나기 전에는 실제 설문을 시작할 수 없습니다.
