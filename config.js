@@ -1,2 +1,1 @@
-// Leave empty for the local Node server. Set to the deployed Worker origin for Pages.
-window.STUDY_CONFIG={apiBase:''};
+window.STUDY_CONFIG={"apiBase":"https://wissly-study-api.wissly-study-web.workers.dev"};
