@@ -51,6 +51,10 @@ GitHub Pages는 공개 화면과 작업 자료를 제공하고, Cloudflare Worke
 
 ## 현재 공개 위치
 
+2026-11-17 문구 개정: 제공된 수정안을 반영해 한국어 조사와 영문 보고서 표현을 정리하고, 각 과제에 자료 묶음과 위치를 표시했습니다. 과제 순서는 화면에서 ‘순서 1·2’로 표시하며 저장 값 A/B는 유지합니다. 참여 안내에는 Zoom 온라인 진행, 인터뷰 완료 시 USD 100 지급, 연구 종료 시 녹화·녹음 자료 삭제, 문의처 rgh00826@yonsei.ac.kr를 반영했습니다. 지급 방법·시기는 진행자가 별도로 안내합니다. 예상 소요 시간은 표시하지 않습니다.
+
+현재 과제 PDF는 `python scripts/build-task-sheets.py`로 화면 문구에서 생성합니다(ReportLab, PyMuPDF, Windows 맑은 고딕 필요). 한국어·영어 각 5개이며, 별도 사본은 `../실험준비_v2/문구개정_20261117/`에 있습니다. 작업용 원본 문서와 설문 응답 구조는 변경하지 않았습니다.
+
 - 저장소: https://github.com/rgh112/wissly-study-web
 - 사이트: https://kunheeryu.com/wissly-study-web/
 - 영문: https://kunheeryu.com/wissly-study-web/en/index.html?lang=en

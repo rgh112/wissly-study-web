@@ -90,6 +90,9 @@ async def run():
   await check('document.body.innerText.includes("답변은 말로") && !document.body.innerText.includes("최종 제출")')
   await screenshot('v5-interview-welcome.png')
   await click('#start-interview');await settled()
+  for _ in range(100):
+   if await js('!!document.querySelector("#interview-guide") && document.querySelector("#interview-guide").open'):break
+   await asyncio.sleep(.05)
   await check('!!state.answers.v5_interview_started_at && document.querySelector("#interview-guide").open')
   await check('document.querySelectorAll(".interview-item").length===14 && !document.querySelector("[data-answer=v4_interview_1]")')
   await click('.interview-item summary');await click('.interview-item .answer-note summary')
